@@ -22,11 +22,35 @@ const App = () => {
 
   const addPerson = (event) => {
     event.preventDefault();
-    dataService.create(newPerson).then(returnedPerson => {
-      setPersons(persons.concat(returnedPerson));
-      setNewPerson({name: '', number: ''});
-    });
+  
+    const personExists = persons.find(
+      (person) => person.name.toLowerCase() === newPerson.name.toLowerCase()
+    );
+  
+    if (personExists) {
+      const confirmation = window.confirm(
+        `${newPerson.name} is already added to the phonebook. Replace the old number with the new one?`
+      );
+      if (confirmation) {
+        dataService
+          .update(personExists.id, { ...personExists, number: newPerson.number })
+          .then((updatedPerson) => {
+            setPersons(
+              persons.map((person) =>
+                person.id !== personExists.id ? person : updatedPerson
+              )
+            );
+            setNewPerson({ name: '', number: '' });
+          });
+      }
+    } else {
+      dataService.create(newPerson).then((returnedPerson) => {
+        setPersons(persons.concat(returnedPerson));
+        setNewPerson({ name: '', number: '' });
+      });
+    }
   };
+  
 
   const handleSearchNameChange = (event) => {
     setSearchName(event.target.value);
@@ -39,19 +63,6 @@ const App = () => {
   const handleNumberChange = (event) => {
     setNewPerson({...newPerson, number: event.target.value});
   };
-
-  // const updatePerson = (id) => {
-  //   const personToUpdate = persons.find((person) => person.id === id);
-  //   if (!personToUpdate) return;
-
-  //   dataService.update(id, newPerson).then((returnedPerson) => {
-  //     setPersons(
-  //       persons.map((person) =>
-  //         person.id === id ? returnedPerson : person
-  //       )
-  //     );
-  //   });
-  // };
 
   const DeletePerson = (id, name) => {
     const confirmation = window.confirm(`Delete ${name}?`);
@@ -97,17 +108,14 @@ const App = () => {
         </div>
       </form>
       <h2>Numbers</h2>
-      <ul>
         {filteredPersons.map((person) => (
-          <li key={person.id}>
+          <div key={person.id}>
             {person.name} - {person.number}{" "}
-            {/* <button onClick={() => updatePerson(person.id)}>Update</button>{" "} */}
             <button onClick={() => DeletePerson(person.id, person.name)}>
               Delete
             </button>
-          </li>
+          </div>
         ))}
-      </ul>
     </div>
   );
 };
