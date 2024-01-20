@@ -2,11 +2,13 @@ import React, {useState, useEffect} from "react";
 import axios from "axios";
 import Data from "./components/Data";
 import dataService from "./services/data";
+import { set } from "mongoose";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newPerson, setNewPerson] = useState({name: '', number: ''});
   const [searchName, setSearchName] = useState("");
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     dataService
@@ -73,9 +75,17 @@ const App = () => {
     }
   };
   
+  const showNotification = (message) => {
+    setNotification(message);
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+
   return (
     <div>
-      <h1>My Phonebook</h1>
+      <h1>Phonebook</h1>
+      {notification && <div className="notification">{notification}</div>}
       <div>
         Filter shown with:{" "}
         <input
@@ -93,7 +103,7 @@ const App = () => {
             onChange={handleNameChange}
             placeholder="Enter name"
           />
-          </div>
+        </div>
         <div>
           Number:{" "}
           <input
@@ -104,21 +114,22 @@ const App = () => {
         </div>
         <br />
         <div>
-          <button type="submit">Add</button>
+          <button type="submit" onClick={() => showNotification(`Added ${newPerson.name}`)}>
+            Add
+          </button>
         </div>
       </form>
       <h2>Numbers</h2>
-        {filteredPersons.map((person) => (
-          <div key={person.id}>
-            {person.name} - {person.number}{" "}
-            <button onClick={() => DeletePerson(person.id, person.name)}>
-              Delete
-            </button>
-          </div>
-        ))}
+      {filteredPersons.map((person) => (
+        <div key={person.id}>
+          {person.name} - {person.number}{" "}
+          <button onClick={() => DeletePerson(person.id, person.name)}>
+            Delete
+          </button>
+        </div>
+      ))}
     </div>
   );
 };
 
 export default App;
-
